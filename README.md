@@ -4,7 +4,11 @@ This implementation was inspired by EVM world dApps and Metamask wallet. Metamas
 
 Author, however, points out that connecting the entire HDWallet to a dApp exposes user to increased risk of compromising their seed. This risk is akin to giving the XPubKey to a third party. If a dApp will furthermore ask user to produce signatures for every single new address, the risk will increase even further. Therefore the implementation is intentionally narrowed down to reusing the single address, this way only the private key of this particular address will have more signatures produced. Key rotation on demand is advised to users.
 
-Please refer to supported
+# State of the art
+
+The initial work has concluded in the frame of the Flipstarter (thanks again to all the supporters).
+
+Please refer to currently supported:
 
 * wallets: [cashonize-wc2-beta](https://cashonize-wc2-beta.vercel.app/) ([source](https://github.com/mainnet-pat/cashonize-wc2-beta))
 * apps: [tapswap-wc2](https://tapswap-wc2.vercel.app/), [wc2-web-examples](https://wc2-web-examples.vercel.app/) ([source](https://github.com/mainnet-pat/wc2-web-examples))
@@ -396,7 +400,9 @@ console.log(result);
 
 All other request interfaces are compatible with the described `IConnector` interface described above, formatted in `bch_${methodName}`.
 
-# Possible feature
+# Possible features
+
+## sendTransaction
 
 The specification and implementation of a simplified `bch_sendTransaction` method is advised to be established. Instead of generic and somewhat complicated `bch_signTransaction` a further interface can be used:
 
@@ -404,6 +410,18 @@ The specification and implementation of a simplified `bch_sendTransaction` metho
 export interface IConnector {
   // ...
   sendTransaction: (options: { recipientCashaddress: string, valueSatoshis: bigint, broadcast?: boolean, userPrompt?: string }) => Promise<{ signedTransaction: string, signedTransactionHash: string}>;
+  // ...
+}
+```
+
+## batchSignTransaction
+
+Complex application workflows might require to consequitively sign several transactions. An example could be minting 3 NFTs from a single threaded covenant like the one used in BitCats. Another example is a relisting of a sell order at higher price on TapSwap which normally requires two transactions: first to cancel the order listing and second to create a new listing contract with modified price. Batching such chain of interactions will greatly improve the user experience by sparing them switching between the app and the wallet multiple times.
+
+```ts
+export interface IConnector {
+  // ...
+  batchSignTransaction: (options: { transactionsTemplates: [{transaction: string | TransactionBCH, sourceOutputs: (Input | Output | ContractInfo)[] }], broadcast?: boolean, userPrompt?: string }) => Promise<Array<{ signedTransaction: string, signedTransactionHash: string}>>;;
   // ...
 }
 ```
