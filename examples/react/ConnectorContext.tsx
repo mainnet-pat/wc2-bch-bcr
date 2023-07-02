@@ -266,12 +266,12 @@ export class WalletConnect2Connector implements IConnector {
     await this._subscribeToEvents(this.client);
     await this._checkPersistedState(this.client);
 
-    // if (!this.session) {
+    if (!this.session) {
       const pairings = this.client.pairing.getAll({ active: true });
       this.pairings = pairings;
 
       await this._connect(pairings[0]);
-    // }
+    }
   };
 
   async _connect(pairing: any) {
