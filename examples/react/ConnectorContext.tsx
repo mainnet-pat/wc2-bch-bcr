@@ -62,25 +62,34 @@ export interface IConnector {
 // paytaca
 export class PaytacaConnector implements IConnector {
   async address(): Promise<string | undefined> {
-    return window.paytaca?.address();
+    return window.paytaca!.address();
   };
   async signTransaction(options: { transaction: string | TransactionBCH; sourceOutputs: (Input<Uint8Array, Uint8Array> | Output<Uint8Array, Uint8Array> | ContractInfo)[]; broadcast?: boolean; userPrompt?: string | undefined; }): Promise<{ signedTransaction: string, signedTransactionHash: string} | undefined> {
-    return window.paytaca?.signTransaction(options);
+    return window.paytaca!.signTransaction(options);
   };
   async signMessage(options: { message: string; userPrompt?: string | undefined; }): Promise<string | undefined> {
-    return window.paytaca?.signMessage(options);
+    return window.paytaca!.signMessage(options);
   };
   async connect(): Promise<void> {
-    return window.paytaca?.connect();
+    return new Promise(async (resolve) => {
+      if (!await this.connected()) {
+        window.paytaca!.on("addressChanged", () => {
+          resolve();
+        });
+        window.paytaca!.connect();
+      } else {
+        resolve();
+      }
+    })
   };
   async connected(): Promise<boolean> {
-    return !!window.paytaca?.connected();
+    return window.paytaca!.connected();
   };
   async disconnect(): Promise<void> {
-    return window.paytaca?.disconnect();
+    return window.paytaca!.disconnect();
   };
   on(event: string, callback: Function): void {
-    return window.paytaca?.on(event, callback);
+    return window.paytaca!.on(event, callback);
   };
 }
 
@@ -98,13 +107,31 @@ export const DEFAULT_APP_METADATA = {
   icons: ["https://tapswap.cash/favicon.ico"],
 };
 
-const web3Modal = new Web3Modal({
-  projectId: DEFAULT_PROJECT_ID!,
+const desktopWallets = [{
+  id: "Cashonize",
+  name: "Cashonize",
+  links: {
+    native: undefined as any,
+    universal: "https://cashonize.com/#/wc"
+  },
+},
+{
+  id: "Paytaca",
+  name: "Paytaca",
+  links: {
+    native: "",
+    universal: "chrome-extension://pakphhpnneopheifihmjcjnbdbhaaiaa/www/index.html#/apps/wallet-connect"
+  }
+}
+];
 
+const web3Modal = new Web3Modal({
+  projectId: undefined as any,
   walletConnectVersion: 2,
-  desktopWallets: [],
+  desktopWallets: desktopWallets,
   walletImages: {
-    "Cashonize": "https://cashonize.com/images/cashonize-logo.png"
+    "Cashonize": "https://cashonize.com/images/cashonize-icon.png",
+    "Paytaca": "https://www.paytaca.com/favicon.png"
   },
   enableExplorer: false,
   enableAccountView: true,
@@ -180,6 +207,9 @@ export class WalletConnect2Connector implements IConnector {
     _client.on("session_delete", (args) => {
       DEFAULT_LOGGER && console.log("EVENT", "session_delete");
       this.events.emit("disconnect", args);
+      _client.pairing.keys.forEach(key => {
+        _client.pairing.delete(key, getSdkError("USER_DISCONNECTED"));
+      });
       this.reset();
     });
   };
@@ -344,6 +374,9 @@ export class WalletConnect2Connector implements IConnector {
       await this.client.disconnect({
         topic: this.session.topic,
         reason: getSdkError("USER_DISCONNECTED"),
+      });
+      this.client.pairing.keys.forEach(key => {
+        this.client!.pairing.delete(key, getSdkError("USER_DISCONNECTED"));
       });
     } catch (error) {
       DEFAULT_LOGGER && console.error("SignClient.disconnect failed:", error);
