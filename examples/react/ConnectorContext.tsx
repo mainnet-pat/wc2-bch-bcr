@@ -122,7 +122,15 @@ const desktopWallets = [{
     native: "",
     universal: "chrome-extension://pakphhpnneopheifihmjcjnbdbhaaiaa/www/index.html#/apps/wallet-connect"
   }
-}
+},
+{
+  id: "Zapit",
+  name: "Zapit",
+  links: {
+    native: "",
+    universal: "chrome-extension://fccgmnglbhajioalokbcidhcaikhlcpm/index.html#/wallet-connect"
+  }
+},
 ];
 
 const web3Modal = new Web3Modal({
@@ -131,7 +139,8 @@ const web3Modal = new Web3Modal({
   desktopWallets: desktopWallets,
   walletImages: {
     "Cashonize": "https://cashonize.com/images/cashonize-icon.png",
-    "Paytaca": "https://www.paytaca.com/favicon.png"
+    "Paytaca": "https://www.paytaca.com/favicon.png",
+    "Zapit": "https://lh3.googleusercontent.com/DbMYirtFPzZhSky0djg575FGPAriqGUPokFcb8r0-3qdcgKfR8uLqwK0DCPn0XrrsijRNDUAKUVLXGqLWVcFBB8zDA=s120",
   },
   enableExplorer: false,
   enableAccountView: true,
