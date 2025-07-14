@@ -21,16 +21,15 @@ The current interface WC2 and Paytaca-Connect use is the following.
 ```ts
 export interface IConnector {
   address: () => Promise<string | undefined>;
-  signTransaction: (options: {transaction: string | TransactionBCH, sourceOutputs: (Input | Output | ContractInfo)[], broadcast?: boolean, userPrompt?: string}) => Promise<{ signedTransaction: string, signedTransactionHash: string} | undefined>;
-  signMessage: (options: {message: string, userPrompt?: string}) => Promise<string | undefined>;
+  signTransaction: (options: WcSignTransactionRequest) => Promise<WcSignTransactionResponse | undefined>;
+  signMessage: (options: WcSignMessageRequest) => Promise<WcSignMessageResponse | undefined>;
   connect: () => Promise<void>;
   connected: () => Promise<boolean>;
   disconnect: () => Promise<void>;
   on(event: string, callback: Function): void;
   on(event: "addressChanged", callback: Function): void;
-  on(event: "connect", callback: Function): void;
   on(event: "disconnect", callback: Function): void;
-}
+};
 ```
 
 ## signTransaction
@@ -241,7 +240,6 @@ Response:
 <summary>Show interfaces</summary>
 
 ```ts
-// our interface
 export interface ContractInfo {
   contract?: {
     abiFunction: AbiFunction;
@@ -250,30 +248,49 @@ export interface ContractInfo {
   }
 }
 
-// imported from cashcript version 0.8.0 and above
-// import { AbiFunction, AbiInput, Artifact } from "cashscript";
 export interface AbiInput {
-    name: string;
-    type: string;
+  name: string;
+  type: string;
 }
+
 export interface AbiFunction {
-    name: string;
-    covenant?: boolean;
-    inputs: AbiInput[];
+  name: string;
+  inputs: readonly AbiInput[];
 }
 
 export interface Artifact {
-    contractName: string;
-    constructorInputs: AbiInput[];
-    abi: AbiFunction[];
-    bytecode: string;
-    source: string;
-    compiler: {
-        name: string;
-        version: string;
-    };
-    updatedAt: string;
+  contractName: string;
+  constructorInputs: readonly AbiInput[];
+  abi: readonly AbiFunction[];
+  bytecode: string;
+  source: string;
+  compiler: {
+    name: string;
+    version: string;
+  }
+  updatedAt: string;
 }
+
+export type WcSourceOutput = Input & Output & ContractInfo;
+
+export interface WcSignTransactionRequest {
+  transaction: Transaction | string;
+  sourceOutputs: WcSourceOutput[];
+  broadcast?: boolean;
+  userPrompt?: string;
+}
+
+export interface WcSignTransactionResponse {
+  signedTransaction: string;
+  signedTransactionHash: string;
+}
+
+export interface WcSignMessageRequest {
+  message: string;
+  userPrompt?: string;
+}
+
+export type WcSignMessageResponse = string;
 ```
 
 </details>
@@ -409,7 +426,7 @@ The specification and implementation of a simplified `bch_sendTransaction` metho
 ```ts
 export interface IConnector {
   // ...
-  sendTransaction: (options: { recipientCashaddress: string, valueSatoshis: bigint, broadcast?: boolean, userPrompt?: string }) => Promise<{ signedTransaction: string, signedTransactionHash: string}>;
+  sendTransaction: (options: { recipientCashaddress: string, valueSatoshis: bigint, broadcast?: boolean, userPrompt?: string }) => Promise<WcSignTransactionResponse>;
   // ...
 }
 ```
@@ -421,7 +438,11 @@ Complex application workflows might require to consequitively sign several trans
 ```ts
 export interface IConnector {
   // ...
-  batchSignTransaction: (options: { transactionsTemplates: [{transaction: string | TransactionBCH, sourceOutputs: (Input | Output | ContractInfo)[] }], broadcast?: boolean, userPrompt?: string }) => Promise<Array<{ signedTransaction: string, signedTransactionHash: string}>>;;
+  batchSignTransaction: (options: { transactionsTemplates: [{transaction: string | TransactionBCH, sourceOutputs: WcSourceOutput[] }], broadcast?: boolean, userPrompt?: string }) => Promise<Array<WcSignTransactionResponse>>;
   // ...
 }
 ```
+
+# Implementation
+
+See the [monorepo](https://github.com/mainnet-pat/bch-wc2) which has typescript interfaces and private key signer which helps with local development and automated testing.
