@@ -10,8 +10,8 @@ The initial work has concluded in the frame of the Flipstarter (thanks again to 
 
 Please refer to currently supported:
 
-* wallets: [cashonize-wc2-beta](https://cashonize-wc2-beta.vercel.app/) ([source](https://github.com/mainnet-pat/cashonize-wc2-beta))
-* apps: [tapswap-wc2](https://tapswap-wc2.vercel.app/), [wc2-web-examples](https://wc2-web-examples.vercel.app/) ([source](https://github.com/mainnet-pat/wc2-web-examples))
+* wallets: [cashonize](http://cashonize.com) ([source](https://github.com/cashonize/cashonize-wallet)), Paytaca, ZapIt.
+* apps: [tapswap](https://tapswap.cash/), [wc2-web-examples](https://wc2-web-examples.vercel.app/) ([source](https://github.com/mainnet-pat/wc2-web-examples)) and others [listed](https://tokenaut.cash/dapps?filter=walletconnect)
 * code snippets: [react context for wc2 and paytaca compatible wallet connector used in tapswap](./examples/react/ConnectorContext.tsx)
 
 # Connector interface
